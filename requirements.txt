@@ -8,3 +8,4 @@ ipykernel
 sqlalchemy
 psycopg2
 openpyxl
+apscheduler

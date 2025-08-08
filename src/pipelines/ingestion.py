@@ -2,13 +2,16 @@ from src.config.settings import NEWSAPI_KEY, API_URL
 from src.utils.query_builder import build_q_from_db
 from src.services.fetch_service import fetch_ai_marketing_news
 from src.services.clean_service import clean_raw_data, filter_by_min_length
+from src.repositories.news import upsert_news_bulk
+from src.repositories.db import init_engine
+from datetime import datetime, timedelta, timezone
+from src.config.settings import DATABASE_URL
 import pandas as pd
 import time
 
 def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: int = 1, sleep_secs: float = 0.2):
     queries = build_q_from_db(engine=engine)
     all_curated = []
-    total_raw = 0
 
     for page in range(1, max_pages + 1):
         params = {
@@ -33,7 +36,7 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
         df_curated = filter_by_min_length(df=df_curated, min_total_chars=800)
         all_curated.append(df_curated)
 
-        if len(all_curated) == meta.get("totalResults"):
+        if len(df_raw) == meta.get("totalResults"):
             break
 
         time.sleep(sleep_secs)
@@ -49,7 +52,21 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
 
     metrics = {
         "pages_attempted": min(max_pages, len(all_curated) or 1),
-        "raw_count": total_raw,
+        "raw_count": meta.get("totalResults"),
         "clean_count": int(len(curated_df)),
     }
     return curated_df, metrics
+
+def process_ingestion(days_back=7, page_size=100, max_pages=1):
+    engine = init_engine(DATABASE_URL)
+    now = datetime.now(timezone.utc)
+    frm = (now - timedelta(days=days_back)).isoformat(timespec="seconds")
+    to  = now.isoformat(timespec="seconds")
+
+    df, metrics = run_ingestion(
+        engine=engine, frm=frm, to=to, page_size=page_size, max_pages=max_pages
+    )
+    inserted = 0
+    if not df.empty:
+        inserted = upsert_news_bulk(engine, df)
+    return {"inserted": inserted, "metrics": metrics}
