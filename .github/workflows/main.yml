@@ -1,0 +1,26 @@
+name: Daily Ingestion  # Nombre visible en la pestaña Actions
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # Todos los días a las 06:00 UTC
+  workflow_dispatch: {}   # Permite lanzarlo manualmente desde la UI
+
+jobs:
+  run:
+    runs-on: ubuntu-latest  # Máquina virtual Linux que crea GitHub
+    steps:
+      - uses: actions/checkout@v4  # Clona tu repo en el runner
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"   # Versión de Python que necesitas
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - run: python -m pytest -q   # Lanza tus tests
+      - run: python cli_ingest.py  # Ejecuta tu pipeline de ingestión
+        env:                       # Variables de entorno para tu script
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEWSAPI_KEY:  ${{ secrets.NEWSAPI_KEY }}
+          DAYS_BACK: "7"
+          PAGE_SIZE: "100"
+          MAX_PAGES: "1"
