@@ -9,4 +9,3 @@ sqlalchemy
 psycopg2
 openpyxl
 apscheduler
-pytest
