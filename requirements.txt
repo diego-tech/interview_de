@@ -1,0 +1,10 @@
+Flask                  # Framework web para la API REST
+python-dotenv          # Cargar variables desde .env
+requests               # Llamadas HTTP a News API
+pandas                 # Limpieza y manipulación de datos
+numpy                  # Operaciones numéricas y soporte a pandas
+notebook
+ipykernel          
+sqlalchemy
+psycopg2
+openpyxl
