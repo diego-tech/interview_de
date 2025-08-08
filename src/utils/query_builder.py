@@ -101,7 +101,7 @@ def build_q_from_db(engine: Engine, max_chars: int = 500, categories: List[str] 
     sql = """
     SELECT term, category, negate
     FROM news_keywords
-    WHERE active = TRUE
+    WHERE active = TRUE AND lang = 'en'
     """
 
     # 1) Leer términos y agrupar por categoría, dejando cada término "listo" (quoted y con NOT si aplica)

@@ -50,10 +50,10 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         df = df.drop_duplicates(subset="url", keep="first")
 
     # Renombrado final
-    df = df.rename(columns={"publishedAt": "published_at"})
+    df = df.rename(columns={"publishedAt": "published_at", "urlToImage": "url_to_image"})
 
     # Orden de columnas
-    cols = ["url","title","description","content","author","published_at","urlToImage","source_id","source_name"]
+    cols = ["url","title","description","content","author","published_at","url_to_image","source_id","source_name"]
     for c in cols:
         if c not in df.columns:
             df[c] = pd.NA

@@ -4,3 +4,4 @@ ToDo.md
 .env
 
 *.xlsx
+__pycache__
