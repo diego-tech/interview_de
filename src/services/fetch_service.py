@@ -23,7 +23,7 @@ def fetch_ai_marketing_news(api_url: str, params: dict) -> Tuple[Optional[pd.Dat
         - Mantener desacoplada la construcción de queries (que se hace en utils/query_builder.py).
     """
     try:
-        response = requests.get(api_url, params=params, timeout=10)
+        response = requests.get(api_url, params=params, timeout=30)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         return None, {

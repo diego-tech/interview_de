@@ -1,12 +1,10 @@
-# repositories/news_repository.py
-from sqlalchemy import Table, Column, BigInteger, Text, DateTime, MetaData
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import Table, Column, BigInteger, Text, DateTime, MetaData, UniqueConstraint
 
 metadata = MetaData()
 
 news = Table(
     "news", metadata,
-    Column("id", BigInteger, primary_key=True),
+    Column("id", BigInteger, primary_key=True, autoincrement=True),
     Column("url", Text, nullable=False),
     Column("url_hash", Text, nullable=False),
     Column("source_id", Text),
@@ -16,7 +14,8 @@ news = Table(
     Column("url_to_image", Text),
     Column("published_at", DateTime(timezone=True)),
     Column("source_name", Text, nullable=False),
-    Column("title")
+    Column("title", Text),
+    UniqueConstraint("url_hash", name="uq_news_url_hash"),
 )
 
 def upsert_news_bulk(engine, df) -> int:
@@ -32,12 +31,13 @@ def upsert_news_bulk(engine, df) -> int:
             "description":  r.get("description"),
             "content":      r.get("content"),
             "author":       r.get("author"),
-            "url_to_image": r.get("urlToImage") or r.get("url_to_image"),
+            "url_to_image": r.get("url_to_image"),
             "published_at": r.get("published_at"),
-            "source_name":  r.get("source_name") or r.get("source") or "",
+            "source_name":  r.get("source_name") or "",
             "title":        r.get("title")
         })
 
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
     stmt = pg_insert(news).values(rows)
     update_cols = {
         "source_id":    stmt.excluded.source_id,
@@ -54,4 +54,3 @@ def upsert_news_bulk(engine, df) -> int:
     with engine.begin() as conn:
         conn.execute(upsert)
     return len(rows)
-

@@ -3,67 +3,98 @@ import re
 import hashlib
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
+# === Constantes globales ===
+# Columnas que son obligatorias para que un registro se considere válido
 REQUIRED = ("title", "description", "publishedAt")
+
+# Parámetros de tracking que se eliminarán de las URLs
 TRACKING_PARAMS = {
-    "utm_source","utm_medium","utm_campaign","utm_term","utm_content",
-    "utm_id","utm_source_platform","gclid","fbclid"
+    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+    "utm_id", "utm_source_platform", "gclid", "fbclid"
 }
 
 def normalize_url(u: str) -> str:
+    """
+    Normaliza una URL eliminando parámetros de tracking y el fragmento (#...).
+    
+    Args:
+        u (str): URL original.
+    
+    Returns:
+        str: URL normalizada (sin parámetros de tracking y en minúsculas).
+    """
     if not u:
         return u
+    
     sp = urlsplit(u)
-    # limpia query de tracking y quita fragmento
-    q = [(k, v) for k, v in parse_qsl(sp.query, keep_blank_values=True)
-         if k.lower() not in TRACKING_PARAMS]
+    
+    # Filtrar parámetros de tracking de la query
+    q = [
+        (k, v) for k, v in parse_qsl(sp.query, keep_blank_values=True)
+        if k.lower() not in TRACKING_PARAMS
+    ]
+    
+    # Reconstruir la URL con netloc en minúsculas, query filtrada y sin fragmento
     sp = sp._replace(netloc=sp.netloc.lower(), query=urlencode(q, doseq=True), fragment="")
     return urlunsplit(sp)
 
 def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     """
-    Espera columnas: 
-    ['author','title','description','url','urlToImage','publishedAt','content','source_id','source_name']
-    Reglas:
-      - author vacío -> 'Anonimo'
-      - title/description/publishedAt obligatorios
-      - publishedAt -> datetime (UTC)
-      - dedupe por url normalizada (hash)
-      - truncado de content para evitar payloads gigantes
-    Devuelve columnas normalizadas y ordenadas.
+    Limpia y normaliza los datos crudos recibidos de la API.
+    
+    Reglas aplicadas:
+      - Rellena 'author' vacío con 'Anonimo'
+      - Verifica que 'title', 'description' y 'publishedAt' estén presentes
+      - Convierte 'publishedAt' a datetime UTC
+      - Normaliza URLs y genera un hash único para deduplicar
+      - Elimina registros sin URL o sin campos obligatorios
+      - Trunca el contenido a 20.000 caracteres para evitar payloads grandes
+    
+    Args:
+        df_raw (pd.DataFrame): DataFrame crudo con columnas como:
+            ['author','title','description','url','urlToImage',
+             'publishedAt','content','source_id','source_name']
+    
+    Returns:
+        pd.DataFrame: DataFrame limpio y normalizado, con columnas ordenadas.
     """
-    cols_out = ["url","url_hash","title","description","content","author",
-                "published_at","url_to_image","source_id","source_name"]
+    cols_out = [
+        "url", "url_hash", "title", "description", "content", "author",
+        "published_at", "url_to_image", "source_id", "source_name"
+    ]
 
     if df_raw is None or df_raw.empty:
         return pd.DataFrame(columns=cols_out)
 
     df = df_raw.copy()
 
-    # Asegurar obligatorios existan
+    # Asegurar columnas obligatorias
     for c in REQUIRED:
         if c not in df.columns:
             df[c] = pd.NA
 
-    # Normalizar strings básicos
-    for c in ["title","description","content","author","url","urlToImage","source_id","source_name"]:
+    # Limpiar espacios y nulos en columnas clave
+    for c in ["title", "description", "content", "author", "url", "urlToImage", "source_id", "source_name"]:
         if c in df.columns:
             df[c] = df[c].fillna("").astype(str).str.strip()
 
-    # Autor por defecto
+    # Rellenar autores vacíos
     if "author" not in df.columns:
         df["author"] = "Anonimo"
     df.loc[df["author"] == "", "author"] = "Anonimo"
 
-    # URL normalizada + hash (descarta sin URL)
+    # Eliminar filas sin URL y generar hash de URL normalizada
     df = df[df["url"] != ""].copy()
     df["url_norm"] = df["url"].map(normalize_url)
-    df["url_hash"] = df["url_norm"].fillna("").map(lambda x: hashlib.sha1(x.lower().encode("utf-8")).hexdigest())
+    df["url_hash"] = df["url_norm"].fillna("").map(
+        lambda x: hashlib.sha1(x.lower().encode("utf-8")).hexdigest()
+    )
     df = df.drop_duplicates(subset=["url_hash"])
 
-    # Fecha a UTC
+    # Convertir fechas a UTC
     df["publishedAt"] = pd.to_datetime(df["publishedAt"], errors="coerce", utc=True)
 
-    # Filtrar obligatorios válidos
+    # Filtrar registros sin campos obligatorios
     mask_ok = (
         df["title"].ne("") &
         df["description"].ne("") &
@@ -71,14 +102,14 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     )
     df = df[mask_ok].copy()
 
-    # Truncado de contenido (por si vienen tochos)
+    # Limitar tamaño del contenido
     if "content" in df.columns:
         df["content"] = df["content"].str.slice(0, 20000)
 
-    # Renombrado final
+    # Renombrar columnas
     df = df.rename(columns={"publishedAt": "published_at", "urlToImage": "url_to_image"})
 
-    # Asegurar columnas de salida
+    # Asegurar que todas las columnas de salida existan
     for c in cols_out:
         if c not in df.columns:
             df[c] = pd.NA
@@ -87,8 +118,14 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
 
 def extract_extra_chars(content: str) -> int:
     """
-    Extrae el número de caracteres adicionales del formato '[+XXXX chars]'.
-    Si no existe, devuelve 0.
+    Extrae el número de caracteres adicionales del formato '[+XXXX chars]'
+    que aparece en algunos textos de NewsAPI.
+    
+    Args:
+        content (str): Texto del contenido del artículo.
+    
+    Returns:
+        int: Número de caracteres adicionales, 0 si no aplica.
     """
     if not isinstance(content, str):
         return 0
@@ -96,9 +133,22 @@ def extract_extra_chars(content: str) -> int:
     return int(m.group(1)) if m else 0
 
 def filter_by_min_length(df: pd.DataFrame, min_total_chars: int = 800) -> pd.DataFrame:
+    """
+    Filtra artículos cuyo contenido total (texto + caracteres extra) 
+    sea inferior al mínimo requerido.
+    
+    Args:
+        df (pd.DataFrame): DataFrame con columna 'content'.
+        min_total_chars (int): Mínimo de caracteres totales requeridos.
+    
+    Returns:
+        pd.DataFrame: DataFrame filtrado.
+    """
     if df is None or df.empty:
         return df
+
     df = df.copy()
     df["extra_chars"] = df["content"].apply(extract_extra_chars)
     df["content_len"] = df["content"].fillna("").str.len() + df["extra_chars"]
+    
     return df[df["content_len"] >= min_total_chars].reset_index(drop=True)
