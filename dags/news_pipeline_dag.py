@@ -39,7 +39,7 @@ default_args = {
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "max_retry_delay": timedelta(minutes=30),
-    }
+}
 
 
 with DAG(
