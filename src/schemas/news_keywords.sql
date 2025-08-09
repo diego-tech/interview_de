@@ -1,19 +1,15 @@
--- Extensión útil para búsquedas/filtros opcionales
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
+-- Creación de la tabla news_keywords para almacenar las keywords de las categorías
 CREATE TABLE IF NOT EXISTS news_keywords (
   id           BIGSERIAL PRIMARY KEY,
   term         TEXT        NOT NULL,
   category     TEXT        NOT NULL CHECK (category IN ('AI','MARKETING')),
-  lang         TEXT        NOT NULL CHECK (char_length(lang)=2), -- 'es','en',...
-  must_include BOOLEAN     NOT NULL DEFAULT TRUE,   -- si FALSE, se usará como sinónimo "suave" (suele ser TRUE)
-  negate       BOOLEAN     NOT NULL DEFAULT FALSE,  -- si TRUE se antepone con NOT / '-' en la query
+  lang         TEXT        NOT NULL CHECK (char_length(lang)=2),
+  must_include BOOLEAN     NOT NULL DEFAULT TRUE,
+  negate       BOOLEAN     NOT NULL DEFAULT FALSE,
   active       BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(term, lang)
 );
-
--- Índices útiles
 CREATE INDEX IF NOT EXISTS idx_news_keywords_cat_lang ON news_keywords(category, lang) WHERE active;
 CREATE INDEX IF NOT EXISTS idx_news_keywords_term_trgm ON news_keywords USING GIN (term gin_trgm_ops);
 

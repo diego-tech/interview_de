@@ -3,11 +3,9 @@ import pandas as pd
 import app as appmod
 
 # ---------------------------------------------------------
-# Pruebas de "humo" para los endpoints principales de la API
-# ---------------------------------------------------------
 # Estas pruebas validan que la API responde correctamente
 # en los casos más básicos, sin depender de integraciones reales
-# (BD, NewsAPI, etc.) gracias al uso de monkeypatching.
+# (BD, NewsAPI, etc.).
 # ---------------------------------------------------------
 
 def test_health_ok(client):

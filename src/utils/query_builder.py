@@ -38,7 +38,7 @@ def chunk_list(lst: List[str], max_len: int) -> List[List[str]]:
 
     for item in lst:
         token = quote_term(item)
-        token_len = len(token) + 4  # +4 por " OR "
+        token_len = len(token) + 4
         
         if length + token_len > max_len and current:
             # Inicia un nuevo bloque
@@ -94,12 +94,12 @@ def build_queries_from_blocks(
     categories: List[str]
 ) -> List[str]:
     """
-    Combina los bloques de cada categoría con AND (producto cartesiano)
-    y filtra las combinaciones que superen el límite de caracteres.
+    Combina los bloques de cada categoría con AND y filtra 
+    las combinaciones que superen el límite de caracteres.
     
     Args:
         blocks_by_cat (dict): bloques por categoría.
-        max_chars (int): límite máximo permitido en `q`.
+        max_chars (int): límite máximo permitido en queries por NewsAPI.
         categories (List[str]): orden de categorías a combinar.
     
     Returns:
@@ -125,20 +125,22 @@ def build_q_from_db(engine: engine, max_chars: int = 500, categories: List[str] 
     para usar en `/v2/everything` de NewsAPI.
     
     Flujo:
-      1. Lee términos activos desde `news_keywords` (solo 'en').
+      1. Lee términos activos desde `news_keywords`.
       2. Agrupa por categoría y aplica formato (quote y/o NOT).
       3. Construye bloques por categoría respetando límites.
-      4. Genera todas las combinaciones posibles (producto cartesiano).
+      4. Genera todas las combinaciones posibles.
       5. Filtra combinaciones que superen `max_chars`.
     
     Args:
-        engine (Engine): conexión SQLAlchemy a la base de datos.
-        max_chars (int): límite de caracteres por query (NewsAPI = 500).
+        engine (engine): conexión SQLAlchemy a la base de datos.
+        max_chars (int): límite de caracteres por query NewsAPI.
         categories (List[str], opcional): orden o filtro de categorías a usar.
     
     Returns:
         List[str]: queries listas para enviar a la API.
     """
+
+    # Querie que recoge las keywords activas y del idioma inglés
     sql = """
     SELECT term, category, negate
     FROM news_keywords

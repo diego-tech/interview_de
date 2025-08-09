@@ -15,12 +15,6 @@ def fetch_ai_marketing_news(api_url: str, params: dict) -> Tuple[Optional[pd.Dat
         Tuple[Optional[pd.DataFrame], dict]:
             - DataFrame con artículos o None si hay error.
             - Diccionario con metadatos de la respuesta (status, totalResults, error_message si aplica).
-    
-    Nota profesional:
-        El consumo de APIs externas se centraliza aquí para:
-        - Facilitar pruebas (mock de requests).
-        - Evitar repetir lógica de manejo de errores.
-        - Mantener desacoplada la construcción de queries (que se hace en utils/query_builder.py).
     """
     try:
         response = requests.get(api_url, params=params, timeout=30)

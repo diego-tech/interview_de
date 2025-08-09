@@ -1,41 +1,8 @@
 import pandas as pd
 import re
-from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
-# === Constantes globales ===
 # Columnas que son obligatorias para que un registro se considere válido
 REQUIRED = ("title", "description", "publishedAt", "url")
-
-# Parámetros de tracking que se eliminarán de las URLs
-TRACKING_PARAMS = {
-    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-    "utm_id", "utm_source_platform", "gclid", "fbclid"
-}
-
-def normalize_url(u: str) -> str:
-    """
-    Normaliza una URL eliminando parámetros de tracking y el fragmento (#...).
-    
-    Args:
-        u (str): URL original.
-    
-    Returns:
-        str: URL normalizada (sin parámetros de tracking y en minúsculas).
-    """
-    if not u:
-        return u
-    
-    sp = urlsplit(u)
-    
-    # Filtrar parámetros de tracking de la query
-    q = [
-        (k, v) for k, v in parse_qsl(sp.query, keep_blank_values=True)
-        if k.lower() not in TRACKING_PARAMS
-    ]
-    
-    # Reconstruir la URL con netloc en minúsculas, query filtrada y sin fragmento
-    sp = sp._replace(netloc=sp.netloc.lower(), query=urlencode(q, doseq=True), fragment="")
-    return urlunsplit(sp)
 
 def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     """
@@ -82,9 +49,8 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         df["author"] = "Anonimo"
     df.loc[df["author"] == "", "author"] = "Anonimo"
 
-    # Eliminar filas sin URL y generar hash de URL normalizada
+    # Eliminar filas sin URL y eliminar url duplicadas
     df = df[df["url"] != ""].copy()
-    df["url_norm"] = df["url"].map(normalize_url)
     df = df.drop_duplicates(subset=["url"])
 
     # Convertir fechas a UTC

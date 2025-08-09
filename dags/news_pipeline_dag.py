@@ -11,6 +11,12 @@ from airflow.operators.python import get_current_context
 DAG_ID = "news_ai_marketing_ingestion"
 
 def _process_ingestion():
+    """
+    Ejecuta el proceso de llamada, tranformación y carga (ETL)
+
+    Retorna:
+        Resultado de la función `run_ingestion`
+    """
     from src.pipelines.ingestion import process_ingestion
 
     ctx = get_current_context()
@@ -33,6 +39,7 @@ def _process_ingestion():
         logging.getLogger(DAG_ID).exception("Ingestion pipeline failed: %s", e)
         raise
 
+# Argumentos por defecto de Apache Airflow
 default_args = {
     "owner": "diego",
     "depends_on_past": False,
@@ -41,11 +48,10 @@ default_args = {
     "max_retry_delay": timedelta(minutes=30),
 }
 
-
 with DAG(
     dag_id=DAG_ID,
     default_args=default_args,
-    schedule="0 6 * * *",  # Diario a las 06:00 Europe/Madrid
+    schedule="0 7 * * *",  # Diario a las 07:00 Europe/Madrid
     start_date=pendulum.datetime(2025, 8, 1, tz="Europe/Madrid"),
     catchup=False,
     max_active_runs=1,

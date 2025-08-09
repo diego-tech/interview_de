@@ -28,12 +28,6 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
         tuple:
             curated_df (pd.DataFrame): DataFrame con noticias limpias y filtradas.
             metrics (dict): Métricas del proceso (páginas intentadas, artículos crudos, artículos limpios).
-
-    Flujo:
-        1. Construye la query dinámica desde base de datos.
-        2. Pagina resultados de la API hasta max_pages.
-        3. Limpia y filtra artículos según requisitos mínimos de longitud.
-        4. Devuelve datos consolidados y métricas.
     """
     # Construye query de búsqueda a partir de keywords almacenadas en BD
     queries = build_q_from_db(engine=engine)
@@ -113,12 +107,6 @@ def process_ingestion(days_back=7, page_size=100, max_pages=1):
         dict:
             inserted (int): Número de artículos insertados/actualizados en BD.
             metrics (dict): Métricas de la ingesta.
-
-    Flujo:
-        1. Inicializa conexión y asegura que la tabla e índices existen.
-        2. Define el rango de fechas para la búsqueda.
-        3. Ejecuta `run_ingestion` para obtener datos limpios.
-        4. Inserta en la base de datos usando `upsert_news_bulk`.
     """
     engine = init_engine(DATABASE_URL)
 

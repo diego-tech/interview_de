@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 
 # === Carga de variables de entorno ===
-# Calcula la ruta raíz del proyecto (2 niveles arriba de este archivo)
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Carga las variables definidas en el archivo .env

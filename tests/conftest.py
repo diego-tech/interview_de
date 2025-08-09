@@ -1,4 +1,3 @@
-# tests/conftest.py
 import os
 import pytest
 import app as appmod
@@ -6,12 +5,7 @@ import app as appmod
 # ---------------------------------------------------------
 # Configuración previa para entorno de testing
 # ---------------------------------------------------------
-
-# Apaga el scheduler en tests, para evitar ejecuciones automáticas
-# que puedan interferir o dejar procesos colgando durante la ejecución de pytest.
 os.environ.setdefault("ENABLE_SCHEDULER", "0")
-
-# Asegura que no corremos en modo debug (evita logs excesivos o jobs rápidos).
 os.environ.setdefault("DEBUG", "0")
 
 

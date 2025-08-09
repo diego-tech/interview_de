@@ -1,3 +1,4 @@
+-- Creación de la tabla donde se almacenará la información extraída de NewsAPI
 CREATE TABLE IF NOT EXISTS news (
   id            BIGSERIAL PRIMARY KEY,
   url           TEXT UNIQUE NOT NULL,         

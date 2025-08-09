@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 
 def init_engine(db_url: str):
     """
@@ -10,12 +10,6 @@ def init_engine(db_url: str):
 
     Retorna:
         sqlalchemy.engine.Engine: Objeto Engine configurado.
-
-    Lanza:
-        ValueError: Si no se proporciona una URL de conexión válida.
-
-    Uso:
-        engine = init_engine(DATABASE_URL)
     """
     if not db_url:
         raise ValueError("DATABASE_URL no proporcionada")

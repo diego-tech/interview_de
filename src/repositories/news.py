@@ -18,6 +18,16 @@ news = Table(
 )
 
 def upsert_news_bulk(engine, df) -> int:
+    """
+    Inserta los registros limpios y filtrados de la API en la base de datos
+
+    Parámetros:
+        engine: Motor de conexión de SQLAlchemy
+        df: DataFrame con la información que debe de ser insertada
+    
+    Retorna:
+        Lóngitud de filas insertadas en la Base de Datos
+    """
     if df is None or df.empty:
         return 0
 
