@@ -1,6 +1,4 @@
 """
-app.py
-------
 Aplicación Flask que expone endpoints para interactuar con el pipeline ETL de noticias.
 Incluye:
 - Lectura de datos desde la base de datos.

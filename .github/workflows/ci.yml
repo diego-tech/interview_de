@@ -1,0 +1,50 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Opcional: cache de dependencias para acelerar
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Limpieza de pycache/pyc antes de instalar y testear
+      - name: Clean pycache
+        run: |
+          find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find . -type f -name "*.py[co]" -delete
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          # añade tus secrets si tus tests los necesitan
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ENABLE_SCHEDULER: "0"
+          DEBUG: "0"
+        run: python -m pytest -q

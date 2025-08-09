@@ -53,7 +53,7 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
         # Parámetros de la petición a la API
         params = {
             "apiKey": NEWSAPI_KEY,
-            **safe_params_log
+           **safe_params_log
         }
 
         # Obtiene datos crudos desde la API
