@@ -1,11 +1,10 @@
 import pandas as pd
 import re
-import hashlib
 from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 # === Constantes globales ===
 # Columnas que son obligatorias para que un registro se considere válido
-REQUIRED = ("title", "description", "publishedAt")
+REQUIRED = ("title", "description", "publishedAt", "url")
 
 # Parámetros de tracking que se eliminarán de las URLs
 TRACKING_PARAMS = {

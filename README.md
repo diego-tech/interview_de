@@ -4,11 +4,11 @@
 
 Para poder ejecutar el proyecto en local, se necesita:
 
-* **Docker** y **Docker Compose** instalados.
+* **Docker** y **Docker Compose** instalados. https://www.docker.com/products/docker-desktop/
 * Cuentas y credenciales en:
 
-  * **Supabase** (Base de datos PostgreSQL).
-  * **NewsAPI** (para obtener la API Key).
+  * **Supabase** (Base de datos PostgreSQL). https://supabase.com/
+  * **NewsAPI** (para obtener la API Key).http://newsapi.org/
 * Generar las claves necesarias:
 
   * **Fernet Key**: clave requerida por Apache Airflow para el cifrado de datos sensibles.

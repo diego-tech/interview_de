@@ -26,7 +26,6 @@ x-airflow-common: &airflow-common
 
   volumes:
     - ../dags:/opt/airflow/dags
-    - ../plugins:/opt/airflow/plugins
     - ../requirements.txt:/opt/airflow/requirements.txt    # archivo raíz → contenedor
     - ..:/opt/airflow/app                                  # repo completo (para src/*)
   working_dir: /opt/airflow
