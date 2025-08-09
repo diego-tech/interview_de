@@ -56,12 +56,13 @@ with DAG(
         "max_pages": 1,
     },
     doc_md="""
-        # ETL all-in-one: NewsAPI → Limpieza → Upsert en BD
+        # ETL Interview DE
 
         Este DAG ejecuta un **pipeline unificado** que: 
-        1) construye la query desde BD, 2) pagina la NewsAPI, 3) limpia/filtra resultados y 
+        1) construye la query desde BD, 
+        2) pagina la NewsAPI, 
+        3) limpia/filtra resultados
         4) realiza **upsert** en la base de datos.  
-        Devuelve un **resumen pequeño** en XCom (sin datos pesados).
 
         ## Parámetros (ajustables en la UI)
         - `days_back` (int): ventana de días hacia atrás para la búsqueda. *(default: 7)*
@@ -69,7 +70,7 @@ with DAG(
         - `max_pages` (int): número máximo de páginas a recuperar. *(default: 1)*
 
         ## Planificación
-        - **Schedule**: `0 6 * * *` (diario a las 06:00 Europe/Madrid)
+        - **Schedule**: `0 7 * * *` (diario a las 06:00 Europe/Madrid)
         - **Start date**: 2025-08-01
         - **Catchup**: desactivado
 
@@ -78,15 +79,6 @@ with DAG(
         - **Fetch**: pagina NewsAPI en la ventana `[now - days_back, now]`.
         - **Clean**: normaliza campos, filtra por longitud mínima y elimina duplicados.
         - **Upsert**: inserta/actualiza en BD en modo bulk.
-
-        ## Salida (XCom)
-        ```json
-        {
-        "raw": <int>,
-        "clean": <int>,
-        "inserted": <int>,
-        "window": { "from": "<ISO8601>", "to": "<ISO8601>" }
-        }
     """,
 ) as dag:
     run = PythonOperator(
