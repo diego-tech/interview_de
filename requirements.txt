@@ -6,7 +6,7 @@ numpy                  # Operaciones numéricas y soporte a pandas
 notebook
 ipykernel          
 sqlalchemy
-psycopg2
+psycopg2-binary
 openpyxl
 apscheduler
 pytest

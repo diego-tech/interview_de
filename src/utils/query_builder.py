@@ -1,8 +1,8 @@
-from typing import List, Dict, Optional
+from typing import List, Dict
 from itertools import product
 from collections import defaultdict
 
-from sqlalchemy import Engine, text
+from sqlalchemy import engine, text
 
 def quote_term(t: str) -> str:
     """
@@ -119,7 +119,7 @@ def build_queries_from_blocks(
     
     return queries
 
-def build_q_from_db(engine: Engine, max_chars: int = 500, categories: List[str] = None) -> List[str]:
+def build_q_from_db(engine: engine, max_chars: int = 500, categories: List[str] = None) -> List[str]:
     """
     Extrae términos activos de la base de datos y construye queries listas
     para usar en `/v2/everything` de NewsAPI.

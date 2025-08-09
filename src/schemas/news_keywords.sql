@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS news_keywords (
   must_include BOOLEAN     NOT NULL DEFAULT TRUE,   -- si FALSE, se usará como sinónimo "suave" (suele ser TRUE)
   negate       BOOLEAN     NOT NULL DEFAULT FALSE,  -- si TRUE se antepone con NOT / '-' en la query
   active       BOOLEAN     NOT NULL DEFAULT TRUE,
-  weight       INT         NOT NULL DEFAULT 1,      -- por si quieres ponderar en el futuro
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(term, lang)
 );

@@ -1,69 +1,97 @@
 from __future__ import annotations
-from datetime import datetime, timedelta
-import json
+from datetime import timedelta
 import logging
-import pandas as pd
+import pendulum
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.exceptions import AirflowSkipException
+from airflow.operators.python import get_current_context
 
-# Importa TU código (gracias a PYTHONPATH=/opt/airflow/app)
-from src.repositories.db import init_engine
-from src.repositories.news import upsert_news  # -> implementa ON CONFLICT en tu repo
-from src.services.fetch_service import fetch_news  # devuelve list[dict]
-from src.services.clean_service import clean_articles  # recibe list[dict] -> DataFrame limpio
+DAG_ID = "news_ai_marketing_ingestion"
 
-DEFAULT_ARGS = {
-    "owner": "diego",
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
-}
+def _process_ingestion():
+    from src.pipelines.ingestion import process_ingestion
 
-def extract(**ctx):
-    # Puedes pasar ventanas temporales si quieres incrementalidad
-    articles = fetch_news()
-    ctx["ti"].xcom_push(key="raw_articles", value=articles)
+    ctx = get_current_context()
+    params = ctx.get("params", {}) or {}
+    days_back = int(params.get("days_back", 7))
+    page_size = int(params.get("page_size", 100))
+    max_pages = int(params.get("max_pages", 1))
 
-def transform(**ctx):
-    articles = ctx["ti"].xcom_pull(key="raw_articles", task_ids="extract")
-    if not articles:
-        logging.info("No articles to transform.")
-        ctx["ti"].xcom_push(key="clean_df_json", value="[]")
-        return
-
-    df: pd.DataFrame = clean_articles(articles)  # normaliza + filtro AI & Marketing + dedup + fechas
-    ctx["ti"].xcom_push(key="clean_df_json", value=df.to_json(orient="records", date_unit="s"))
-
-def load(**ctx):
-    rows_json = ctx["ti"].xcom_pull(key="clean_df_json", task_ids="transform")
-    df = pd.DataFrame(json.loads(rows_json)) if rows_json else pd.DataFrame()
-    if df.empty:
-        logging.info("Nothing to load.")
-        return
-
-    # Conexión por Hook (si configuras en Airflow UI una conn 'supabase_db'), o usa init_engine(DATABASE_URL).
     try:
-        hook = PostgresHook(postgres_conn_id="supabase_db")
-        engine = hook.get_sqlalchemy_engine()
-    except Exception:
-        # Fallback a tu init_engine leyendo DATABASE_URL (de tu settings/.env)
-        from src.config.settings import DATABASE_URL
-        engine = init_engine(DATABASE_URL)
+        result = process_ingestion(
+            days_back=days_back,
+            page_size=page_size,
+            max_pages=max_pages,
+        )
+        logging.getLogger(DAG_ID).info("Process result: %s", result)
+        return result
+    except AirflowSkipException:
+        raise
+    except Exception as e:
+        logging.getLogger(DAG_ID).exception("Ingestion pipeline failed: %s", e)
+        raise
 
-    upsert_news(df, engine)  # implementa ON CONFLICT (url_hash) DO UPDATE
+default_args = {
+    "owner": "diego",
+    "depends_on_past": False,
+    "retries": 2,
+    "retry_delay": timedelta(minutes=5),
+    "max_retry_delay": timedelta(minutes=30),
+    }
+
 
 with DAG(
-    dag_id="news_ai_marketing_pipeline",
-    default_args=DEFAULT_ARGS,
-    schedule="0 6 * * *",    # diario 06:00 Europe/Madrid
-    start_date=datetime(2025, 8, 1),
+    dag_id=DAG_ID,
+    default_args=default_args,
+    schedule="0 6 * * *",  # Diario a las 06:00 Europe/Madrid
+    start_date=pendulum.datetime(2025, 8, 1, tz="Europe/Madrid"),
     catchup=False,
-    tags=["etl", "news", "supabase"],
+    max_active_runs=1,
+    tags=["etl", "newsapi"],
+    params={
+        "days_back": 7,
+        "page_size": 100,
+        "max_pages": 1,
+    },
+    doc_md="""
+        # ETL all-in-one: NewsAPI → Limpieza → Upsert en BD
+
+        Este DAG ejecuta un **pipeline unificado** que: 
+        1) construye la query desde BD, 2) pagina la NewsAPI, 3) limpia/filtra resultados y 
+        4) realiza **upsert** en la base de datos.  
+        Devuelve un **resumen pequeño** en XCom (sin datos pesados).
+
+        ## Parámetros (ajustables en la UI)
+        - `days_back` (int): ventana de días hacia atrás para la búsqueda. *(default: 7)*
+        - `page_size` (int): tamaño de página para la API. *(default: 100)*
+        - `max_pages` (int): número máximo de páginas a recuperar. *(default: 1)*
+
+        ## Planificación
+        - **Schedule**: `0 6 * * *` (diario a las 06:00 Europe/Madrid)
+        - **Start date**: 2025-08-01
+        - **Catchup**: desactivado
+
+        ## Flujo interno
+        - **Build query**: lee keywords desde BD y normaliza términos (soporta listas/negaciones).
+        - **Fetch**: pagina NewsAPI en la ventana `[now - days_back, now]`.
+        - **Clean**: normaliza campos, filtra por longitud mínima y elimina duplicados.
+        - **Upsert**: inserta/actualiza en BD en modo bulk.
+
+        ## Salida (XCom)
+        ```json
+        {
+        "raw": <int>,
+        "clean": <int>,
+        "inserted": <int>,
+        "window": { "from": "<ISO8601>", "to": "<ISO8601>" }
+        }
+    """,
 ) as dag:
-
-    t_extract = PythonOperator(task_id="extract", python_callable=extract)
-    t_transform = PythonOperator(task_id="transform", python_callable=transform)
-    t_load = PythonOperator(task_id="load", python_callable=load)
-
-    t_extract >> t_transform >> t_load
+    run = PythonOperator(
+        task_id="process_ingestion",
+        python_callable=_process_ingestion,
+        do_xcom_push=True,
+        execution_timeout=timedelta(minutes=15)
+    )

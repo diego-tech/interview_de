@@ -6,7 +6,6 @@ news = Table(
     "news", metadata,
     Column("id", BigInteger, primary_key=True, autoincrement=True),
     Column("url", Text, nullable=False),
-    Column("url_hash", Text, nullable=False),
     Column("source_id", Text),
     Column("description", Text),
     Column("content", Text),
@@ -15,7 +14,7 @@ news = Table(
     Column("published_at", DateTime(timezone=True)),
     Column("source_name", Text, nullable=False),
     Column("title", Text),
-    UniqueConstraint("url_hash", name="uq_news_url_hash"),
+    UniqueConstraint("url", name="uq_news_url"),
 )
 
 def upsert_news_bulk(engine, df) -> int:
@@ -26,7 +25,6 @@ def upsert_news_bulk(engine, df) -> int:
     for r in df.to_dict(orient="records"):
         rows.append({
             "url":          r.get("url"),
-            "url_hash":     r.get("url_hash"),
             "source_id":    r.get("source_id"),
             "description":  r.get("description"),
             "content":      r.get("content"),
@@ -49,7 +47,7 @@ def upsert_news_bulk(engine, df) -> int:
         "source_name":  stmt.excluded.source_name,
         "title":        stmt.excluded.title
     }
-    upsert = stmt.on_conflict_do_update(index_elements=["url_hash"], set_=update_cols)
+    upsert = stmt.on_conflict_do_update(index_elements=["url"], set_=update_cols)
 
     with engine.begin() as conn:
         conn.execute(upsert)

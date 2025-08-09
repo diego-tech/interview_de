@@ -59,7 +59,7 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: DataFrame limpio y normalizado, con columnas ordenadas.
     """
     cols_out = [
-        "url", "url_hash", "title", "description", "content", "author",
+        "url", "title", "description", "content", "author",
         "published_at", "url_to_image", "source_id", "source_name"
     ]
 
@@ -86,10 +86,7 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     # Eliminar filas sin URL y generar hash de URL normalizada
     df = df[df["url"] != ""].copy()
     df["url_norm"] = df["url"].map(normalize_url)
-    df["url_hash"] = df["url_norm"].fillna("").map(
-        lambda x: hashlib.sha1(x.lower().encode("utf-8")).hexdigest()
-    )
-    df = df.drop_duplicates(subset=["url_hash"])
+    df = df.drop_duplicates(subset=["url"])
 
     # Convertir fechas a UTC
     df["publishedAt"] = pd.to_datetime(df["publishedAt"], errors="coerce", utc=True)

@@ -3,7 +3,7 @@ from src.utils.query_builder import build_q_from_db
 from src.services.fetch_service import fetch_ai_marketing_news
 from src.services.clean_service import clean_raw_data, filter_by_min_length
 from src.repositories.news import upsert_news_bulk
-from src.repositories.db import init_engine, ensure_schema
+from src.repositories.db import init_engine
 from datetime import datetime, timedelta, timezone
 import pandas as pd
 import time
@@ -84,7 +84,7 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
     # Consolida todos los DataFrames y elimina duplicados por hash de URL
     curated_df = (
         pd.concat(all_curated, ignore_index=True)
-        .drop_duplicates(subset="url_hash")
+        .drop_duplicates(subset="url")
         .reset_index(drop=True)
         if all_curated else pd.DataFrame()
     )
@@ -121,7 +121,6 @@ def process_ingestion(days_back=7, page_size=100, max_pages=1):
         4. Inserta en la base de datos usando `upsert_news_bulk`.
     """
     engine = init_engine(DATABASE_URL)
-    ensure_schema(engine)  # Garantiza que las tablas e índices existen
 
     # Define rango de fechas en base a days_back
     now = datetime.now(timezone.utc)
