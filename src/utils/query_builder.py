@@ -9,7 +9,7 @@ def quote_term(t: str) -> str:
     Envuelve un término entre comillas si contiene espacios, asegurando
     que NewsAPI lo interprete como una búsqueda exacta.
     
-    Args:
+    Parámetros:
         t (str): término original.
     
     Returns:
@@ -25,7 +25,7 @@ def chunk_list(lst: List[str], max_len: int) -> List[List[str]]:
     
     Esto evita superar el límite de 500 caracteres del parámetro `q` en NewsAPI.
     
-    Args:
+    Parámetros:
         lst (List[str]): lista de términos de búsqueda.
         max_len (int): límite máximo de caracteres para cada bloque.
     
@@ -59,7 +59,7 @@ def build_blocks_by_category(groups: Dict[str, List[str]], max_chars: int, categ
     Construye bloques de términos por categoría, aplicando `chunk_list` para
     evitar que cada bloque supere el presupuesto de caracteres asignado.
     
-    Args:
+    Parámetros:
         groups (dict): {categoria: [términos quoteados o con NOT]}
         max_chars (int): límite total del parámetro `q`.
         categories (List[str], opcional): orden y selección de categorías a usar.
@@ -97,7 +97,7 @@ def build_queries_from_blocks(
     Combina los bloques de cada categoría con AND y filtra 
     las combinaciones que superen el límite de caracteres.
     
-    Args:
+    Parámetros:
         blocks_by_cat (dict): bloques por categoría.
         max_chars (int): límite máximo permitido en queries por NewsAPI.
         categories (List[str]): orden de categorías a combinar.
@@ -124,7 +124,7 @@ def build_q_from_db(engine: engine, max_chars: int = 500, categories: List[str] 
     Extrae términos activos de la base de datos y construye queries listas
     para usar en `/v2/everything` de NewsAPI.
     
-    Args:
+    Parámetros:
         engine (engine): conexión SQLAlchemy a la base de datos.
         max_chars (int): límite de caracteres por query NewsAPI.
         categories (List[str], opcional): orden o filtro de categorías a usar.

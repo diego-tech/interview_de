@@ -24,7 +24,7 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
         max_pages (int, opcional): Número máximo de páginas a consultar.
         sleep_secs (float, opcional): Tiempo de espera entre páginas para evitar bloqueos.
 
-    Retorna:
+    Returns:
         tuple:
             curated_df (pd.DataFrame): DataFrame con noticias limpias y filtradas.
             metrics (dict): Métricas del proceso (páginas intentadas, artículos crudos, artículos limpios).
@@ -65,7 +65,7 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
 
         # Limpieza y filtrado de datos
         df_curated = clean_raw_data(df_raw=df_raw)
-        df_curated = filter_by_min_length(df=df_curated, min_total_chars=800)
+        df_curated = filter_by_min_length(df=df_curated, min_total_chars=1000)
         all_curated.append(df_curated)
 
         # Si una página tiene menos resultados de los solicitados, asumimos que no hay más datos
@@ -104,7 +104,7 @@ def process_ingestion(days_back=7, page_size=100, max_pages=1):
         page_size (int, opcional): Número de artículos por página.
         max_pages (int, opcional): Número máximo de páginas a consultar.
 
-    Retorna:
+    Returns:
         dict:
             inserted (int): Número de artículos insertados/actualizados en BD.
             metrics (dict): Métricas de la ingesta.

@@ -7,7 +7,7 @@ def fetch_ai_marketing_news(api_url: str, params: dict) -> Tuple[Optional[pd.Dat
     """
     Llama a la API de NewsAPI para obtener noticias de AI y Marketing.
     
-    Args:
+    Parámetros:
         api_url (str): URL base del endpoint (ej: https://newsapi.org/v2/everything).
         params (dict): Diccionario de parámetros que incluye apiKey y q.
     

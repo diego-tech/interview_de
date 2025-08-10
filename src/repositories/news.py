@@ -25,7 +25,7 @@ def upsert_news_bulk(engine, df) -> int:
         engine: Motor de conexión de SQLAlchemy
         df: DataFrame con la información que debe de ser insertada
     
-    Retorna:
+    Returns:
         Lóngitud de filas insertadas en la Base de Datos
     """
     if df is None or df.empty:

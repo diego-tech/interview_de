@@ -8,7 +8,7 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     """
     Limpia y normaliza los datos crudos recibidos de la API.
     
-    Args:
+    Parámetros:
         df_raw (pd.DataFrame): DataFrame crudo con columnas como:
             ['author','title','description','url','urlToImage',
              'publishedAt','content','source_id','source_name']
@@ -75,7 +75,7 @@ def extract_extra_chars(content: str) -> int:
     Extrae el número de caracteres adicionales del formato '[+XXXX chars]'
     que aparece en algunos textos de NewsAPI.
     
-    Args:
+    Parámetros:
         content (str): Texto del contenido del artículo.
     
     Returns:
@@ -91,7 +91,7 @@ def filter_by_min_length(df: pd.DataFrame, min_total_chars: int = 1000) -> pd.Da
     Filtra artículos cuyo contenido total (texto + caracteres extra) 
     sea inferior al mínimo requerido.
     
-    Args:
+    Parámetros:
         df (pd.DataFrame): DataFrame con columna 'content'.
         min_total_chars (int): Mínimo de caracteres totales requeridos.
     

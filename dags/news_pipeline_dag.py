@@ -14,7 +14,7 @@ def _process_ingestion():
     """
     Ejecuta el proceso de llamada, tranformación y carga (ETL)
 
-    Retorna:
+    Returns:
         Resultado de la función `run_ingestion`
     """
     from src.pipelines.ingestion import process_ingestion

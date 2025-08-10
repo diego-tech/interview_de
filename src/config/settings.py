@@ -22,22 +22,14 @@ if not DATABASE_URL:
 
 def is_debug() -> bool:
     """
-    Retorna:
+    Returns:
         bool: True si DEBUG está configurado como "1", False en caso contrario.
-
-    Uso:
-        if is_debug():
-            print("Modo debug activado")
     """
     return DEBUG == "1"
 
 def is_enable_scheduler() -> bool:
     """
-    Retorna:
+    Returns:
         bool: True si ENABLE_SCHEDULER está configurado como "1".
-
-    Uso:
-        if is_enable_scheduler():
-            start_scheduler()
     """
     return ENABLE_SCHEDULER == "1"

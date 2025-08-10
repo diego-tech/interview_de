@@ -7,7 +7,7 @@ def init_engine(db_url: str):
     Parámetros:
         db_url (str): Cadena de conexión a la base de datos en formato SQLAlchemy.
 
-    Retorna:
+    Returns:
         sqlalchemy.engine.Engine: Objeto Engine configurado.
     """
     if not db_url:
