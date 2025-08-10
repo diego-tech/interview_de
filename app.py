@@ -7,15 +7,10 @@ Incluye:
 - Opción de ejecución periódica mediante scheduler.
 
 Endpoints:
-    GET  /           -> Healthcheck.
+    GET  /           -> Check.
     GET  /news       -> Obtiene noticias desde la base de datos.
-    GET  /preview    -> Ejecuta la ingesta de noticias desde NewsAPI sin guardarlas (modo demo).
+    GET  /preview    -> Ejecuta la ingesta de noticias desde NewsAPI sin guardarlas.
     POST /ingest     -> Ejecuta la ingesta completa y persiste en la base de datos.
-
-Dependencias clave:
-    - Flask: API REST.
-    - SQLAlchemy: conexión y consultas a la base de datos.
-    - Módulos internos: pipelines.ingestion, repositories.db, config.settings.
 """
 
 import logging
@@ -38,9 +33,9 @@ logging.basicConfig(
 app = Flask(__name__)
 
 @app.get("/")
-def health():
+def check():
     """
-    Endpoint de healthcheck para verificar que el servicio está activo.
+    Endpoint de check para verificar que el servicio está activo.
     
     Returns:
         JSON con {"status": "ok"} y código HTTP 200.

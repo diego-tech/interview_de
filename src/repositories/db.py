@@ -6,7 +6,6 @@ def init_engine(db_url: str):
 
     Parámetros:
         db_url (str): Cadena de conexión a la base de datos en formato SQLAlchemy.
-                      Ejemplo: 'postgresql+psycopg2://user:password@host:port/dbname'
 
     Retorna:
         sqlalchemy.engine.Engine: Objeto Engine configurado.

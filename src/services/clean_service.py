@@ -8,14 +8,6 @@ def clean_raw_data(df_raw: pd.DataFrame) -> pd.DataFrame:
     """
     Limpia y normaliza los datos crudos recibidos de la API.
     
-    Reglas aplicadas:
-      - Rellena 'author' vacío con 'Anonimo'
-      - Verifica que 'title', 'description' y 'publishedAt' estén presentes
-      - Convierte 'publishedAt' a datetime UTC
-      - Normaliza URLs y genera un hash único para deduplicar
-      - Elimina registros sin URL o sin campos obligatorios
-      - Trunca el contenido a 20.000 caracteres para evitar payloads grandes
-    
     Args:
         df_raw (pd.DataFrame): DataFrame crudo con columnas como:
             ['author','title','description','url','urlToImage',
@@ -94,7 +86,7 @@ def extract_extra_chars(content: str) -> int:
     m = re.search(r"\[\+(\d+)\s+chars\]", content)
     return int(m.group(1)) if m else 0
 
-def filter_by_min_length(df: pd.DataFrame, min_total_chars: int = 800) -> pd.DataFrame:
+def filter_by_min_length(df: pd.DataFrame, min_total_chars: int = 1000) -> pd.DataFrame:
     """
     Filtra artículos cuyo contenido total (texto + caracteres extra) 
     sea inferior al mínimo requerido.

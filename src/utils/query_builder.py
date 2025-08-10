@@ -124,13 +124,6 @@ def build_q_from_db(engine: engine, max_chars: int = 500, categories: List[str] 
     Extrae términos activos de la base de datos y construye queries listas
     para usar en `/v2/everything` de NewsAPI.
     
-    Flujo:
-      1. Lee términos activos desde `news_keywords`.
-      2. Agrupa por categoría y aplica formato (quote y/o NOT).
-      3. Construye bloques por categoría respetando límites.
-      4. Genera todas las combinaciones posibles.
-      5. Filtra combinaciones que superen `max_chars`.
-    
     Args:
         engine (engine): conexión SQLAlchemy a la base de datos.
         max_chars (int): límite de caracteres por query NewsAPI.

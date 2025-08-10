@@ -84,14 +84,5 @@ services:
         condition: service_completed_successfully
     command: >
       bash -lc "pip install -r /opt/airflow/requirements.txt && airflow scheduler"
-
-  airflow-worker:
-    <<: *airflow-common
-    depends_on:
-      airflow-init:
-        condition: service_completed_successfully
-    command: >
-      bash -lc "pip install -r /opt/airflow/requirements.txt && airflow celery worker"
-
 volumes:
   airflow_db:

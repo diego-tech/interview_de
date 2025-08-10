@@ -17,7 +17,7 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
     Ejecuta el proceso de extracción y limpieza de noticias desde la API de NewsAPI.
 
     Parámetros:
-        engine (sqlalchemy.engine.Engine): Conexión a la base de datos.
+        engine: Conexión a la base de datos.
         frm (str): Fecha/hora de inicio en formato ISO 8601 (ej. '2025-08-01T00:00:00').
         to (str): Fecha/hora de fin en formato ISO 8601.
         page_size (int, opcional): Número de artículos por página (máx. 100 en plan gratuito).
@@ -40,7 +40,8 @@ def run_ingestion(engine, frm: str, to: str, page_size: int = 100, max_pages: in
             "page": page,
             "pageSize": page_size,
             "from": frm,
-            "to": to
+            "to": to,
+            "sortBy": "relevancy"
         }
         logger.info("Fetching page=%s params=%s", page, safe_params_log)
 
